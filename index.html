@@ -1,0 +1,123 @@
+<!DOCTYPE html><!--这是一个声明指明是HTML5-->
+<html lang='zh-CN'>
+
+<head>
+    <meta charset='utf-8'>
+    <!--浏览器配置-->
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no' >
+    <title>Forye Picture</title>
+    <!-- update date: 2023-05-15 -->
+    <link href='./css/index.min.css' rel='stylesheet' type='text/css'>
+    <!-- <link href='./css/iconfont/iconfont.css' rel='stylesheet' type='text/css'> -->
+    <link href='https://at.alicdn.com/t/c/font_4025121_7migdbl2sh8.css' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+    <header>
+        <nav id='nav'>
+            <div title="Back To Top" @click='back_to_top()'><strong>BACK</strong></div>
+            <div title="Delete Your Picture" @click='popup_delete_picture()'><strong>DELETE</strong></div>
+            <div title="Upload Your Picture" @click='popup_upload_picture()'><strong>UPLOAD</strong></div>
+            <div title="About Me" @click='show_about_me_info()'><strong>ABOUT</strong></div>
+            <div title="Contact Me" @click='show_contact_me_info()'><strong>CONTACT</strong></div>
+        </nav>
+    </header>
+    <main id="main_section">
+        <aside>
+            <h2>DESCRIPTION</h2><hr>
+            <h3>{{backPicture.num}}</h3><hr>
+            <div>
+                <p></p>
+            </div>
+        </aside>
+        <section>
+            <article class="content" @scroll='scroll($event)'>
+                <div v-for='(picture,index) in pictures' :key='index' @click="showPicture(picture)">
+                    <img alt='Can not find the picture, QAQ' :src='picture.url'>
+                </div>
+            </article>
+            <aside :style="backStyle" @click="isShow=!isShow">
+                <pre>{{backPicture.des}}</pre>
+                <img :src='backPicture.url'>
+            </aside>
+            <div class='popwindow' v-show="isEmphasize" @click="isEmphasize=false">
+                <img :src='emphasizePictureUrl'>
+                <span class="iconfont icon-dianji"></span>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div>
+            <p>Copyright © 2023 Liang JianYe. All rights reserved.</p>
+        </div>
+    </footer>
+    <div id='loading_making_out'><div></div></div>
+    <div id='masking_out' v-show='isShow'></div>
+    <div id='delete_window' :style='style' class='popwindow'>
+        <header>
+            <strong>DELETE PICTURE</strong>
+            <div class='iconfont icon-guanbi' @click='close()'></div>
+        </header>
+        <main>
+            <input placeholder="The picture's number" v-model.lazy='postData.num'>
+            <input placeholder="The picture's key" v-model.lazy='postData.key'>
+        </main>
+        <footer>
+            <button class='confirm_btn' @click='submit()'>Confirm</button>
+            <button class='cancel_btn' @click='cancel()'>Cancel</button>
+        </footer>
+    </div>
+    <div id='upload_window' :style='style' class='popwindow'>
+        <header>
+            <strong>UPLOAD YOUR PICTURE</strong>
+            <div class='iconfont icon-guanbi' @click='close()'></div>
+        </header>
+        <main class="content-1">
+            <div>
+                <input @change='create_url_by_file($event)' type='file' title='click to choose your picture' accept='image/*'>
+                <span class='iconfont' :class="iconClass"></span>
+                <img :src='formData.url' v-show="isUrlRight" @load="handleLoad()" @error="handleError()">
+            </div>
+            <input type='text' v-model='formData.url' placeholder='Using other Url instead of uploading your picture?'>
+        </main>
+        <main class="content-2">
+            <textarea v-model.lazy='formData.des' placeholder="Click it to Write Your Experience"></textarea>
+        </main>
+        <footer>
+            <button class='confirm_btn' @click='submit()'>Confirm</button>
+            <button class='cancel_btn' @click='cancel()'>Cancel</button>
+        </footer>
+        <div :style='tipStyle'>
+            <div class='popwindow'>
+                <h2>Upload Successfully</h2>
+                <hr>
+                <strong>Warning:</strong>
+                <p>If you want to delete this picture from this website,</p>
+                <p>You must remember the picture's key</p>
+                <p>The info is only shown once ! ! !</p>
+                <hr>
+                <label><div>Url:</div><input :value='showData.url' disabled></label>
+                <label><div>Num:</div><input :value='showData.num' disabled></label>
+                <label><div>Key:</div><input :value='showData.key' disabled></label>
+                <button class='confirm_btn' @click='confirm()'>Confirm and Copy</button>
+            </div>
+        </div>
+    </div>
+    <!-- vue -->
+    <!-- 本地环境版本，放置在本地 -->
+    <script type='text/javascript' src='./js/module/vue.produce.js'></script>
+    <!-- 开发环境版本，包含了有帮助的命令行警告 -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script> -->
+    <!-- 生产环境版本，优化了尺寸和速度 -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
+    <!-- axios -->
+    <script type='text/javascript' src='./js/module/axios.min.js'></script>
+    <!-- <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.js"></script> -->
+    <!-- 配置js文件 -->
+    <!-- update date: 2023-05-15 -->
+    <script type='text/javascript' src='./js/index.js'></script>
+    <!-- <script type='text/javascript' src='./js/index.min.js'></script> -->
+</body>
+
+</html>
