@@ -5,44 +5,60 @@
     <meta charset='utf-8'>
     <!--浏览器配置-->
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no' >
+    <meta name='viewport' content='width=device-width, initial-scale=1.0,maximum-scale=1.0,user-scalable=no'>
     <title>Forye Picture</title>
     <!-- update date: 2023-05-15 -->
-    <link href='./css/index.min.css' rel='stylesheet' type='text/css'>
+    <link href='./src/css/index.css?v=20231208' rel='stylesheet' type='text/css'>
     <!-- <link href='./css/iconfont/iconfont.css' rel='stylesheet' type='text/css'> -->
     <link href='https://at.alicdn.com/t/c/font_4025121_7migdbl2sh8.css' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
+<!-- vue -->
+<!-- 本地环境版本，放置在本地 -->
+<!-- <script type='text/javascript' src='./js/module/vue.produce.js'></script> -->
+<!-- 开发环境版本，包含了有帮助的命令行警告 -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script> -->
+<!-- 生产环境版本，优化了尺寸和速度 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.7.9/vue.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/vue@2"></script>-->
+<!-- axios -->
+<!-- <script type='text/javascript' src='./js/module/axios.min.js'></script> -->
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.js"></script>
+
+<div id="app" v-cloak>
     <header>
-        <nav id='nav'>
-            <div title="Back To Top" @click='back_to_top()'><strong>BACK</strong></div>
-            <div title="Delete Your Picture" @click='popup_delete_picture()'><strong>DELETE</strong></div>
-            <div title="Upload Your Picture" @click='popup_upload_picture()'><strong>UPLOAD</strong></div>
-            <div title="About Me" @click='show_about_me_info()'><strong>ABOUT</strong></div>
-            <div title="Contact Me" @click='show_contact_me_info()'><strong>CONTACT</strong></div>
+        <nav>
+            <div title="Back To Top" @click='backToTop()'><strong>BACK</strong></div>
+            <div title="Delete Picture" @click='isShowDeleteWindow = true;'><strong>DELETE</strong></div>
+            <div title="Upload Picture" @click='isShowUploadWindow = true;'><strong>UPLOAD</strong></div>
+            <div title="About" @click='window.location.href = "/statement.html";'><strong>ABOUT</strong></div>
+            <div title="Contact Us" @click='navShowContactWay()'><strong>CONTACT</strong></div>
         </nav>
     </header>
-    <main id="main_section">
+    <main>
         <aside>
-            <h2>DESCRIPTION</h2><hr>
-            <h3>{{backPicture.num}}</h3><hr>
+            <h2>DESCRIPTION</h2>
+            <hr>
+            <h3>{{ backgroundPicture.uid }}</h3>
+            <hr>
             <div>
-                <p></p>
+                <pre>{{ backgroundPicture.des }}</pre>
             </div>
         </aside>
         <section>
-            <article class="content" @scroll='scroll($event)'>
-                <div v-for='(picture,index) in pictures' :key='index' @click="showPicture(picture)">
+            <article class="content" @scroll='scrollSlider($event)'>
+                <div v-for='(picture,index) in pictures' :key='index' @click="emphasizePicture(picture)">
                     <img alt='Can not find the picture, QAQ' :src='picture.url'>
                 </div>
             </article>
-            <aside :style="backStyle" @click="isShow=!isShow">
-                <pre>{{backPicture.des}}</pre>
-                <img :src='backPicture.url'>
+            <aside :style="{'flex': isShowBackgroundPicture ? 300 : 15}"
+                   @click="isShowBackgroundPicture=!isShowBackgroundPicture">
+                <pre>{{ backgroundPicture.des }}</pre>
+                <img alt="Can't load the picture" :src='backgroundPicture.url' v-show="Boolean(backgroundPicture.url)">
             </aside>
-            <div class='popwindow' v-show="isEmphasize" @click="isEmphasize=false">
-                <img :src='emphasizePictureUrl'>
+            <div class='pop_window' v-show="isEmphasizePicture" @click="isEmphasizePicture=false">
+                <img alt="Can't load the image" :src='isEmphasizePicture ? this.backgroundPicture.url : null'>
                 <span class="iconfont icon-dianji"></span>
             </div>
         </section>
@@ -52,44 +68,50 @@
             <p>Copyright © 2023 Liang JianYe. All rights reserved.</p>
         </div>
     </footer>
-    <div id='loading_making_out'><div></div></div>
-    <div id='masking_out' v-show='isShow'></div>
-    <div id='delete_window' :style='style' class='popwindow'>
+    <div id=“loading_making_out” v-cloak>
+        <div></div>
+    </div>
+    <div id="masking_out" v-show='isShowDeleteWindow || isShowUploadWindow || isEmphasizePicture'></div>
+    <div id="delete_window" :style="{'top': isShowDeleteWindow ? '50%' : '-50%'}" class='pop_window'>
         <header>
             <strong>DELETE PICTURE</strong>
-            <div class='iconfont icon-guanbi' @click='close()'></div>
+            <div class='iconfont icon-guanbi' @click='closeDeleteWindow()'></div>
         </header>
         <main>
-            <input placeholder="The picture's number" v-model.lazy='postData.num'>
-            <input placeholder="The picture's key" v-model.lazy='postData.key'>
+            <input placeholder="The picture's uid" v-model.lazy='deleteData.uid'>
+            <input placeholder="The picture's key" v-model.lazy='deleteData.key'>
         </main>
         <footer>
-            <button class='confirm_btn' @click='submit()'>Confirm</button>
-            <button class='cancel_btn' @click='cancel()'>Cancel</button>
+            <button class='confirm_btn' @click='deletePicture()'>Confirm</button>
+            <button class='cancel_btn' @click='cancelDelete()'>Cancel</button>
         </footer>
     </div>
-    <div id='upload_window' :style='style' class='popwindow'>
+    <div id="upload_window" :style='{top: isShowUploadWindow ? "50%" : "-50%"}' class='pop_window'>
         <header>
             <strong>UPLOAD YOUR PICTURE</strong>
-            <div class='iconfont icon-guanbi' @click='close()'></div>
+            <div class='iconfont icon-guanbi' @click='closeUploadWindow()'></div>
         </header>
         <main class="content-1">
             <div>
-                <input @change='create_url_by_file($event)' type='file' title='click to choose your picture' accept='image/*'>
-                <span class='iconfont' :class="iconClass"></span>
-                <img :src='formData.url' v-show="isUrlRight" @load="handleLoad()" @error="handleError()">
+                <input @change='createUrlByFile($event)' type='file' title='click to choose your picture'
+                       accept='image/*'>
+                <span class='iconfont'
+                      :class="isUrlRight || !uploadData.url ? 'icon-qietu-xuanzetupian' : 'icon-jiazaicuowu'"></span>
+                <img alt="Can't load the picture" :src='uploadData.url' v-show="isUrlRight" @load="isUrlRight = true;"
+                     @error="isUrlRight = false;">
             </div>
-            <input type='text' v-model='formData.url' placeholder='Using other Url instead of uploading your picture?'>
+            <input type='text' v-model='uploadData.url'
+                   placeholder='Using other Url instead of uploading your picture?'>
         </main>
         <main class="content-2">
-            <textarea v-model.lazy='formData.des' placeholder="Click it to Write Your Experience"></textarea>
+            <textarea v-model.lazy='uploadData.des' placeholder="Click it to Write Your Experience"></textarea>
         </main>
         <footer>
-            <button class='confirm_btn' @click='submit()'>Confirm</button>
-            <button class='cancel_btn' @click='cancel()'>Cancel</button>
+            <button class='confirm_btn' @click='postPicture()'>Confirm</button>
+            <button class='cancel_btn' @click='cancelUpload()'>Cancel</button>
         </footer>
-        <div :style='tipStyle'>
-            <div class='popwindow'>
+        <div :style="{'display': isShowUploadWindowTip ? 'flex' : 'none'}">
+            <div class='pop_window'>
                 <h2>Upload Successfully</h2>
                 <hr>
                 <strong>Warning:</strong>
@@ -97,27 +119,24 @@
                 <p>You must remember the picture's key</p>
                 <p>The info is only shown once ! ! !</p>
                 <hr>
-                <label><div>Url:</div><input :value='showData.url' disabled></label>
-                <label><div>Num:</div><input :value='showData.num' disabled></label>
-                <label><div>Key:</div><input :value='showData.key' disabled></label>
-                <button class='confirm_btn' @click='confirm()'>Confirm and Copy</button>
+                <label>
+                    <div>Url:</div>
+                    <input :value='tipData.url' disabled></label>
+                <label>
+                    <div>Uid:</div>
+                    <input :value='tipData.uid' disabled></label>
+                <label>
+                    <div>Key:</div>
+                    <input :value='tipData.key' disabled></label>
+                <button class='confirm_btn' @click='confirmTip()'>Confirm and Copy</button>
             </div>
         </div>
     </div>
-    <!-- vue -->
-    <!-- 本地环境版本，放置在本地 -->
-    <script type='text/javascript' src='./js/module/vue.produce.js'></script>
-    <!-- 开发环境版本，包含了有帮助的命令行警告 -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script> -->
-    <!-- 生产环境版本，优化了尺寸和速度 -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
-    <!-- axios -->
-    <script type='text/javascript' src='./js/module/axios.min.js'></script>
-    <!-- <script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.6/axios.js"></script> -->
-    <!-- 配置js文件 -->
-    <!-- update date: 2023-05-15 -->
-    <script type='text/javascript' src='./js/index.js'></script>
-    <!-- <script type='text/javascript' src='./js/index.min.js'></script> -->
+</div>
+<!-- 配置js文件 -->
+<!-- update date: 2023-05-21 -->
+<!-- <script type='text/javascript' src='./js/index.js'></script> -->
+<script type='text/javascript' src='./src/js/index.js?v=20231206'></script>
 </body>
 
 </html>
