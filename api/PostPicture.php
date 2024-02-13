@@ -41,12 +41,14 @@ if (!empty($_FILES)) {
     // 执行命令
     $response = curl_exec($curl);
     // exit(json_encode(['status'=>300,'message'=>$response]));
-    if (curl_errno($curl))
+    if (curl_errno($curl)) {
         exit(json_encode(['status' => 503, 'message' => curl_error($curl)]));
+    }
     // 获取header信息
     $status_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-    if ($status_code != 200)
+    if ($status_code != 200) {
         exit(json_encode(['status' => 400, 'message' => 'The Url is wrong']));
+    }
     $content_type = explode(';', curl_getinfo($curl, CURLINFO_CONTENT_TYPE))[0];
     //
     $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
@@ -78,44 +80,57 @@ if (!empty($_FILES)) {
         "image/x-xpixmap" => "xpm",
         "image/x-xwindowdump" => "xwd",
     );
-    @$filetype = $mime_and_exts[$content_type] or exit(json_encode(['status' => 400, 'message' => 'The file is not an image: ' . $content_type]));
+    if (array_key_exists($content_type, $mime_and_exts)) {
+        exit(json_encode(['status' => 400, 'message' => 'The file is not an image: ' . $content_type]));
+    }
+    $filetype = $mime_and_exts[$content_type];
     $temp_file = tmpfile();
     fwrite($temp_file, $body);
     fseek($temp_file, 0);
     $temp_file_path = stream_get_meta_data($temp_file)['uri']; // eg: /tmp/phpFx0513a
-    // $temp_file_path = $response;
 } else {
     exit(json_encode(['status' => 400, 'message' => 'Url is null']));
 }
-$remote_file_path = date('Y-m-d H-i-s', time()) . ' ' . rand(1000000000, 9999999999) . '.' . $filetype;
+$uid = uniqid() . rand(1000000000, 9999999999);
+$remote_file_name = $uid . '.' . $filetype;
 
 require_once "./FTP_Class.php";
 $base = new FTP();
-if (!$base->status) exit(json_encode(['status' => 500, 'message' => 'Ftp connect error']));
-if (!$base->put('/' . $remote_file_path, $temp_file_path, FTP_BINARY)) exit(json_encode(['status' => 500, 'message' => 'Ftp exec error']));
+if (!$base->status) {
+    exit(json_encode(['status' => 500, 'message' => 'Ftp connect error']));
+}
+if (!$base->put('/' . $remote_file_name, $temp_file_path, FTP_BINARY)) {
+    exit(json_encode(['status' => 500, 'message' => 'Ftp exec error']));
+}
 
 require_once "./MYSQL_Class.php";
 $base = new MYSQL();
-if (!$base->status) exit(json_encode(['status' => 500, 'message' => 'Mysql connect error']));
-$uid = rand(1000000000, 9999999999);
-$key = rand(1000000000, 9999999999);
+if (!$base->status) {
+    exit(json_encode(['status' => 500, 'message' => 'Mysql connect error']));
+}
+$key = (string)rand(1000000000, 9999999999);
 if (!$base->execute(
     "insert into info (`uid`,`key`,`url`,`des`) values (?,?,?,?)",
     $uid,
     $key,
-    $remote_file_path,
+    $remote_file_name,
     $_POST['des']
-)) exit(json_encode(['status' => 500, 'message' => 'mysql exec error']));
-exit(json_encode([
-    'status' => 200,
-    'message' => 'Upload picture successfully',
-    'data' => [
-        'uid' => $uid,
-        'key' => $key,
-        'url' =>
-            (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://')
-            . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/'
-            . 'source/'
-            . $remote_file_path
-    ]
-]));
+)) {
+    exit(json_encode(['status' => 500, 'message' => 'mysql exec error']));
+} else {
+    exit(json_encode([
+        'status' => 200,
+        'message' => 'Upload picture successfully',
+        'data' => [
+            'uid' => $uid,
+            'key' => $key,
+            'url' =>
+                (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://')
+                . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/'
+                . 'source/'
+                . $remote_file_name
+        ]
+    ]));
+}
+
+
