@@ -91,7 +91,7 @@ if (!empty($_FILES)) {
 } else {
     exit(json_encode(['status' => 400, 'message' => 'Url is null']));
 }
-$uid = uniqid() . rand(1000000000, 9999999999);
+$uid = uniqid();
 $remote_file_name = $uid . '.' . $filetype;
 
 require_once "./FTP_Class.php";
@@ -111,24 +111,20 @@ if (!$base->status) {
 $key = (string)rand(1000000000, 9999999999);
 if (!$base->execute(
     "insert into info (`uid`,`key`,`url`,`des`) values (?,?,?,?)",
-    $uid,
-    $key,
-    $remote_file_name,
-    $_POST['des']
+    $uid, $key, $remote_file_name, $_POST['des']
 )) {
     exit(json_encode(['status' => 500, 'message' => 'mysql exec error']));
 } else {
+    $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://')
+        . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/'
+        . 'source/';
     exit(json_encode([
         'status' => 200,
         'message' => 'Upload picture successfully',
         'data' => [
             'uid' => $uid,
             'key' => $key,
-            'url' =>
-                (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https://' : 'http://')
-                . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT'] . '/'
-                . 'source/'
-                . $remote_file_name
+            'url' => $base_url . $remote_file_name
         ]
     ]));
 }

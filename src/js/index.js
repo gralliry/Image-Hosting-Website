@@ -161,9 +161,7 @@ new Vue({
             this.isShowUploadWindow = false;
             this.isShowUploadWindowTip = false;
             this.copyToClipboard(
-                'url: ' + this.tipData.url +
-                '\nuid: ' + this.tipData.uid +
-                '\nkey: ' + this.tipData.key
+                'Uid: "' + this.tipData.uid + '" Key: "' + this.tipData.key + '"'
             );
             this.cancelUpload();
         },
