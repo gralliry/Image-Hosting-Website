@@ -7,7 +7,7 @@ if (!isset($_POST["order"])) {
 }
 $postData = abs((int)$_POST["order"]);
 
-require_once "./MYSQL_Class.php";
+require_once "./model/MYSQL.php";
 $base = new MYSQL();
 if (!$base->status) {
     exit(json_encode(["status" => 500, "message" => "mysql connect error"]));
@@ -26,15 +26,15 @@ if (!$result) {
 }
 $returnData = [];
 
-$protocol = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https" : "http");
+$protocol = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https" : "http";
 $domainName = $_SERVER["HTTP_HOST"];
 $port = $_SERVER["SERVER_PORT"];
-$prefix = "/source";
+$path = "/source";
 
 while ($info = $result->fetch(PDO::FETCH_ASSOC)) {
     $returnData[] = [
         "uid" => $info["uid"],
-        "url" => $protocol . "://" . $domainName . ":" . $port . $prefix . "/" . $info["url"],
+        "url" => $protocol."://".$domainName.":".$port.$path.$info["url"],
         "des" => $info["des"]
     ];
 }

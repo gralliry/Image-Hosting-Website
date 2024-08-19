@@ -7,7 +7,7 @@ class MYSQL{
     private static $dbname = "image_bed";
     private static $username = "image_bed";
     private static $password = "wYZBKcCfhiNCJfFr";
-    private static $port = 54231;
+    private static $port = 3306;
     public function __construct(){
         @$this->conn = new PDO(
             "mysql:host=".self::$host.";port=".self::$port.";dbname=".self::$dbname,

@@ -1,7 +1,7 @@
 // import axios from 'axios';
 Vue.config.productionTip = false;
 // Vue.prototype.$axios = axios;
-Vue.config.BaseUrl = window.location.hostname === "localhost" ? "https://image.forye.top" : window.location.origin;
+Vue.config.BaseUrl = window.location.origin;
 new Vue({
     el: "#app",
     data: {

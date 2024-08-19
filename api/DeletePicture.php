@@ -12,7 +12,7 @@ if (
 $uid = $_POST["uid"];
 $key = $_POST["key"];
 
-require_once "./MYSQL_Class.php";
+require_once "./model/MYSQL.php";
 $base = new MYSQL();
 if (!$base->status) {
     exit(json_encode(["status" => 500, "message" => "Mysql error"]));
@@ -32,9 +32,9 @@ if ($base->execute(
     exit(json_encode(["status" => 500, "message" => "Mysql delete error"]));
 }
 
-require_once "./FTP_Class.php";
+require_once "./model/FTP.php";
 $base = new FTP();
-if (!$base->delete("/" . $info["url"])) {
+if (!$base->delete($info["url"])) {
     exit(json_encode(["status" => 500, "message" => "Ftp delete error"]));
 }
 $base = null;

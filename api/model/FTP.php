@@ -8,13 +8,13 @@ class FTP
     private static $host = "127.0.0.1";
     private static $username = "image_bed";
     private static $password = "pTnC8Anhx4w5JLHE";
-    private static $port = 54219;
+    private static $port = 21;
     private static $timeout = 90;
 
     public function __construct()
     {
         // 联接FTP服务器 
-        @$this->conn = ftp_connect(self::$host, self::$port, self::$timeout) or exit("Sysnax Error!");
+        @$this->conn = ftp_connect(self::$host, self::$port, self::$timeout) or exit("Syntax Error!");
         if (!$this->conn) return false;
         if (!ftp_login($this->conn, self::$username, self::$password)) return ftp_quit($this->conn);
         $this->system = ftp_systype($this->conn);
@@ -111,16 +111,3 @@ class FTP
         return ftp_delete($this->conn, $directory);
     }
 }
-
-// 使用username和password登录 
-// ftp_login($conn, "root", "root"); 
-// var_dump(ftp_pwd($conn));
-
-// ftp_chdir($conn,"css");
-// $filelist = ftp_nlist($conn, ".");
-// var_dump($filelist);
-
-// ftp_cdup($conn);
-// $filelist = ftp_nlist($conn, ".");
-// var_dump($filelist);
-// 获取远端系统类型 

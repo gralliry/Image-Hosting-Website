@@ -10,7 +10,10 @@ if (!empty($_FILES)) {
         exit(json_encode(["status" => 400, "message" => "The file is too big (>10M)"]));
     // 获取文件后缀名
     $filetype = pathinfo($_FILES["file"]["name"])["extension"];
-    $image = array("webp", "jpg", "png", "ico", "bmp", "gif", "tif", "pcx", "tga", "bmp", "pxc", "tiff", "jpeg", "exif", "fpx", "svg", "psd", "cdr", "pcd", "dxf", "ufo", "eps", "ai", "hdri");
+    $image = array(
+        "webp", "jpg", "png", "ico", "bmp", "gif", "tif", "pcx", "tga", "bmp", "pxc", "tiff", "jpeg", "exif", "fpx",
+        "svg", "psd", "cdr", "pcd", "dxf", "ufo", "eps", "ai", "hdri"
+    );
     // 检查是否为图片类型
     if (!in_array($filetype, $image))
         exit(json_encode(["status" => 400, "message" => "The file is not an image"]));
@@ -57,7 +60,7 @@ if (!empty($_FILES)) {
     // 关闭URL请求
     curl_close($curl);
     // 允许的文件类型
-    $mime_and_exts = array(
+    $mime_and_extends = array(
         "image/bmp" => "bmp",
         "image/x-cmx" => "cmx",
         "image/cis-cod" => "cod",
@@ -80,10 +83,10 @@ if (!empty($_FILES)) {
         "image/x-xpixmap" => "xpm",
         "image/x-xwindowdump" => "xwd",
     );
-    if (array_key_exists($content_type, $mime_and_exts)) {
+    if (array_key_exists($content_type, $mime_and_extends)) {
         exit(json_encode(["status" => 400, "message" => "The file is not an image: " . $content_type]));
     }
-    $filetype = $mime_and_exts[$content_type];
+    $filetype = $mime_and_extends[$content_type];
     $temp_file = tmpfile();
     fwrite($temp_file, $body);
     fseek($temp_file, 0);
@@ -92,18 +95,18 @@ if (!empty($_FILES)) {
     exit(json_encode(["status" => 400, "message" => "Url is null"]));
 }
 $uid = uniqid();
-$remote_file_name = $uid . "." . $filetype;
+$remote_file_name = "/" . $uid . "." . $filetype;
 
-require_once "./FTP_Class.php";
+require_once "./model/FTP.php";
 $base = new FTP();
 if (!$base->status) {
     exit(json_encode(["status" => 500, "message" => "Ftp connect error"]));
 }
-if (!$base->put("/" . $remote_file_name, $temp_file_path, FTP_BINARY)) {
+if (!$base->put($remote_file_name, $temp_file_path, FTP_BINARY)) {
     exit(json_encode(["status" => 500, "message" => "Ftp exec error"]));
 }
 
-require_once "./MYSQL_Class.php";
+require_once "./model/MYSQL.php";
 $base = new MYSQL();
 if (!$base->status) {
     exit(json_encode(["status" => 500, "message" => "Mysql connect error"]));
@@ -115,9 +118,11 @@ if (!$base->execute(
 )) {
     exit(json_encode(["status" => 500, "message" => "mysql exec error"]));
 } else {
-    $base_url = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https://" : "http://")
-        . $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . "/"
-        . "source/";
+    $protocol = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" ? "https" : "http";
+    $domain = $_SERVER["SERVER_NAME"];
+    $port = $_SERVER["SERVER_PORT"];
+    $path = "/source";
+    $base_url = $protocol . "://" . $domain . ":" . $port . $path;
     exit(json_encode([
         "status" => 200,
         "message" => "Upload picture successfully",
