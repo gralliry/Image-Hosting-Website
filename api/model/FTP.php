@@ -1,21 +1,26 @@
 <?php
 
+use FTP\Connection;
+
 class FTP
 {
-    private $conn;
-    public $system;
-    public $status = false;
-    private static $host = "127.0.0.1";
-    private static $username = "image_bed";
-    private static $password = "pTnC8Anhx4w5JLHE";
-    private static $port = 21;
-    private static $timeout = 90;
+    private Connection $conn;
+    public string $system;
+    public bool $status = false;
+    private static string $host;
+    private static int $port;
+    private static string $username;
+    private static string $password;
+    private static int $timeout = 90;
 
     public function __construct()
     {
+        self::$host = getenv('FTP_HOST') ?: "127.0.0.1";
+        self::$port = (int)(getenv('FTP_PORT') ?: "21");
+        self::$username = getenv('FTP_USERNAME') ?: "image_bed";
+        self::$password = getenv('FTP_PASSWORD') ?: "pTnC8Anhx4w5JLHE";
         // 联接FTP服务器 
         @$this->conn = ftp_connect(self::$host, self::$port, self::$timeout) or exit("Syntax Error!");
-        if (!$this->conn) return false;
         if (!ftp_login($this->conn, self::$username, self::$password)) return ftp_quit($this->conn);
         $this->system = ftp_systype($this->conn);
         $this->status = true;
